@@ -1,4 +1,4 @@
-const V = 'pq-v1.2.1';
+const V = 'pq-v2.0.0';
 const CORE = ['./', 'index.html', 'app.css', 'app.js', 'data.js', 'banks.json', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-180.png',
   'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'vendor/tesseract/tesseract.min.js'];
 const OCR = ['vendor/tesseract/worker.min.js', 'vendor/tesseract/tesseract-core-simd-lstm.wasm.js', 'vendor/tesseract/tesseract-core-lstm.wasm.js', 'vendor/tesseract/eng.traineddata.gz'];

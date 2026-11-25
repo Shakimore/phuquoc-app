@@ -1,5 +1,5 @@
 'use strict';
-const VERSION = '1.2.1';
+const VERSION = '2.0.0';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const G = { get(k, d) { try { const v = JSON.parse(localStorage.getItem('pq.' + k)); return v ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem('pq.' + k, JSON.stringify(v)); } catch {} } };
@@ -11,10 +11,24 @@ let who = G.get('who', null);
 const nsOf = () => (TRIP.shared || []).includes(who) ? 'fam' : who;
 const isFam = () => nsOf() === 'fam';
 const P = { get: (k, d) => G.get(nsOf() + '.' + k, d), set: (k, v) => G.set(nsOf() + '.' + k, v) };
+const ACCS = { sea: ['#0a7c86', '#4fd6d0'], brick: ['#b4472e', '#ff9a7e'], jungle: ['#28783c', '#7ddc8e'], lotus: ['#b03676', '#ff93c6'], sky: ['#2b5fc7', '#93b7ff'] };
+let theme = G.get('theme', { mode: 'auto', acc: 'sea' });
+function applyTheme() {
+  const dark = theme.mode === 'dark' || (theme.mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches), r = document.documentElement;
+  r.dataset.mode = dark ? 'dark' : 'light'; r.dataset.acc = theme.acc;
+  document.querySelector('meta[name=theme-color]').content = dark ? '#0a1614' : '#e9efed';
+}
 function pickWho(first) {
-  sheet(`<h3>${first ? 'Кто вы?' : 'Сменить профиль'}</h3><p class="mut sm">У ${(TRIP.shared || []).join(' и ')} общий бюджет. У остальных — свой. Данные лежат в телефоне.</p>` +
-    TRIP.people.map(p => `<button class="opt" data-p="${esc(p)}"><b>${esc(p)}</b>${p === who ? 'сейчас выбран' : ''}</button>`).join(''), !first);
+  const dark = document.documentElement.dataset.mode === 'dark';
+  sheet(`<h3>${first ? 'Кто вы?' : 'Профиль и оформление'}</h3>` +
+    TRIP.people.map(p => `<button class="opt ${p === who && !first ? 'on' : ''}" data-p="${esc(p)}"><b>${esc(p)}</b>${(TRIP.shared || []).includes(p) ? 'общий бюджет: ' + esc(TRIP.shared.join(' и ')) : 'свой кошелёк'}</button>`).join('') +
+    `<h2>Тема</h2><div class="sw">${[['auto', 'Как в телефоне'], ['light', 'Светлая'], ['dark', 'Тёмная']].map(m => `<button data-m="${m[0]}" class="${theme.mode === m[0] ? 'on' : ''}">${m[1]}</button>`).join('')}</div>
+     <h2>Цвет</h2><div class="sw col">${Object.keys(ACCS).map(a => `<button data-a="${a}" class="${theme.acc === a ? 'on' : ''}" style="--c:${ACCS[a][dark ? 1 : 0]}" aria-label="${a}"></button>`).join('')}</div>` +
+    (first ? '' : '<button class="btn" style="width:100%" id="whoOk">Готово</button>'), !first);
   $$('#sheetIn [data-p]').forEach(b => b.onclick = () => { who = b.dataset.p; G.set('who', who); closeSheet(); loadProfile(); });
+  $$('#sheetIn [data-m]').forEach(b => b.onclick = () => { theme.mode = b.dataset.m; G.set('theme', theme); applyTheme(); pickWho(first); });
+  $$('#sheetIn [data-a]').forEach(b => b.onclick = () => { theme.acc = b.dataset.a; G.set('theme', theme); applyTheme(); pickWho(first); });
+  if (!first) $('#whoOk').onclick = closeSheet;
 }
 function loadProfile() {
   $('#whoBtn').textContent = who || 'Профиль';
@@ -28,8 +42,12 @@ function loadProfile() {
 
 /* ---------- утилиты ---------- */
 let toastT;
-function toast(m) { const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
-function sheet(html, closable = true) { $('#sheetIn').innerHTML = html; const s = $('#sheet'); s.hidden = false; s.onclick = e => { if (closable && e.target === s) closeSheet(); }; }
+function toast(m, act) {
+  const t = $('#toast'); t.innerHTML = `<span>${esc(m)}</span>` + (act ? `<button>${esc(act.label)}</button>` : ''); t.hidden = false;
+  if (act) t.querySelector('button').onclick = () => { t.hidden = true; act.fn(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, act ? 4500 : 2600);
+}
+function sheet(html, closable = true) { $('#toast').hidden = true; $('#sheetIn').innerHTML = html; const s = $('#sheet'); s.hidden = false; s.onclick = e => { if (closable && e.target === s) closeSheet(); }; }
 function closeSheet() { $('#sheet').hidden = true; }
 function num(s) { if (typeof s === 'number') return s; s = String(s || '').replace(/\s/g, '').replace(',', '.'); const v = parseFloat(s); return isFinite(v) ? v : 0; }
 function fmt(v, cur) {
@@ -74,11 +92,12 @@ function convFill(src) {
 function initConv() {
   CURS.forEach(c => {
     const i = $('#c' + c);
-    i.oninput = () => { cActive = c; cVal = num(i.value); convFill(c); };
+    i.oninput = () => { cActive = c; cVal = num(i.value); if (c !== 'USD' && cVal && !/[.,]$/.test(i.value)) i.value = plain(cVal, c); convFill(c); };
     i.onfocus = () => { cActive = c; i.select(); convFill(c); };
     i.onblur = () => { if (cActive === c && cVal) i.value = plain(cVal, c); };
   });
   $('#cClear').onclick = () => { cVal = 0; CURS.forEach(c => $('#c' + c).value = ''); };
+  $('#c000').onclick = () => { if (!cVal) return; cVal *= 1000; $('#c' + cActive).value = plain(cVal, cActive); convFill(cActive); };
   $('#cToCart').onclick = () => { if (!cVal) return toast('Сначала введите сумму'); addCart(cVal, cActive); };
   $('#rateUpd').onclick = () => fetchRates(true);
   $('#myVND').value = my.VND; $('#myKZT').value = my.KZT; $('#myOn').checked = my.on;
@@ -163,9 +182,9 @@ async function fetchWx() {
   renderWx();
 }
 function renderWx() {
-  const w = G.get('wx', null); if (!w) return $('#wx').innerHTML = '<h3>Погода на Фукуоке</h3><p class="mut">Появится при первом подключении к интернету.</p>';
+  const w = G.get('wx', null); if (!w) return $('#wx').innerHTML = '<p class="mut">Погода на Фукуоке появится при первом подключении к интернету.</p>';
   const c = w.j.current, d = w.j.daily;
-  $('#wx').innerHTML = `<h3>Погода на Фукуоке</h3><div class="wxnow"><b>${Math.round(c.temperature_2m)}°</b><span>${WMO[c.weather_code] || ''}<br><small class="mut">ощущается ${Math.round(c.apparent_temperature)}°, влажность ${c.relative_humidity_2m}%, ветер ${Math.round(c.wind_speed_10m)} км/ч</small></span></div>
+  $('#wx').innerHTML = `<div class="wxnow"><b>${Math.round(c.temperature_2m)}°</b><span><b style="font:700 16px var(--txt)">Фукуок сейчас: ${WMO[c.weather_code] || ''}</b><br><small class="mut">ощущается ${Math.round(c.apparent_temperature)}°, влажность ${c.relative_humidity_2m}%, ветер ${Math.round(c.wind_speed_10m)} км/ч</small></span></div>
   <div class="wxdays">${d.time.map((t, i) => `<div>${new Date(t + 'T12:00:00+07:00').toLocaleDateString('ru-RU', { weekday: 'short' })}<b>${Math.round(d.temperature_2m_max[i])}°</b>${Math.round(d.temperature_2m_min[i])}°<br>${d.precipitation_probability_max[i] ?? 0}%</div>`).join('')}</div>
   <p class="mut sm">Под температурой — шанс дождя. УФ сегодня: ${Math.round(d.uv_index_max[0])}${d.uv_index_max[0] >= 8 ? ' (очень высокий — крем обязателен)' : ''}. Данные ${ago(w.ts).replace('обновлён', 'обновлены')}.</p>`;
 }
@@ -178,13 +197,14 @@ const kill = id => { S.del[id] = now(); };
 const spent = a => S.hist.filter(h => h.accId === a.id).reduce((s, h) => s + h.charge, 0);
 const bal = a => num(a.start) - spent(a);
 function addCart(price, cur, name) {
-  S.cart.push({ id: uid(), name: name || 'Товар ' + (S.cart.length + 1), price: +price, cur, qty: 1, u: now() }); save(); renderMoney();
-  toast(`В корзине: ${fmt(price, cur)} · всего ${fmt(cartTotal('VND'), 'VND')}`);
+  const it = { id: uid(), name: name || 'Покупка ' + (S.cart.length + 1), price: +price, cur, qty: 1, u: now() };
+  S.cart.push(it); save(); renderMoney();
+  toast(`В корзине ${fmt(price, cur)}`, { label: 'Отменить', fn: () => { kill(it.id); S.cart = S.cart.filter(x => x !== it); save(); renderMoney(); } });
 }
 const cartTotal = cur => S.cart.reduce((s, i) => s + conv(i.price * i.qty, i.cur, cur), 0);
 const ownTotal = cur => S.acc.reduce((s, a) => s + conv(bal(a), a.cur, cur), 0);
 function renderMoney() {
-  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#accounts,#cart') && renderMoney.soft) return;
+  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#accounts,.cartbox') && renderMoney.soft) return;
   const n = S.cart.reduce((s, i) => s + i.qty, 0), b = $('#cartBadge'); b.hidden = !n; b.textContent = n;
   const own = ownTotal('KZT'), ct = cartTotal('KZT'), daysLeft = Math.max(1, Math.ceil((Date.parse('2026-12-03T16:00:00+07:00') - Date.now()) / 864e5));
   $('#moneyTotal').innerHTML = `<small>${isFam() ? 'Общий бюджет: ' + esc(TRIP.shared.join(' + ')) : 'Всего у меня (' + esc(who || '') + ')'}</small><div class="n">${fmt(own, 'KZT')}</div><b>${fmt(ownTotal('VND'), 'VND')} · ${fmt(ownTotal('USD'), 'USD')}</b>` +
@@ -200,20 +220,34 @@ function renderMoney() {
     el.querySelectorAll('[data-f]').forEach(i => i.onchange = () => { const f = i.dataset.f; if (f === 'amt') a.start = num(i.value) + spent(a); else a[f] = f === 'fee' ? num(i.value) : i.value; a.u = now(); save(); renderMoney(); });
     el.querySelector('[data-rm]').onclick = () => { if (confirmDel()) { kill(a.id); S.acc = S.acc.filter(x => x !== a); save(); renderMoney(); } };
   });
-  $('#cart').innerHTML = S.cart.length ? S.cart.map(i => `<div class="ci" data-id="${i.id}"><div class="w"><input class="nm" value="${esc(i.name)}" aria-label="Название"><div class="pr">${fmt(i.price, i.cur)}${i.cur !== 'KZT' ? ' ≈ ' + fmt(conv(i.price, i.cur, 'KZT'), 'KZT') : ' ≈ ' + fmt(conv(i.price, i.cur, 'VND'), 'VND')}</div></div><div class="qty"><button data-q="-1" aria-label="Меньше">−</button><span>${i.qty}</span><button data-q="1" aria-label="Больше">+</button></div></div>`).join('') +
-    `<div class="tot"><span>Итого</span><b>${fmt(cartTotal('VND'), 'VND')}</b></div><div class="tot" style="border:0;padding:0"><span class="mut">это</span><span>${fmt(ct, 'KZT')} · ${fmt(cartTotal('USD'), 'USD')}</span></div>
-     <div class="row"><button class="btn ghost" id="cartClr">Очистить</button><button class="btn" id="cartPay">Оплатил — списать</button></div>` : '<p class="mut">Пусто. Добавляйте цены из сканера, конвертера или вручную — увидите, на сколько набрали.</p>';
-  $$('#cart .ci').forEach(el => {
-    const it = S.cart.find(x => x.id === el.dataset.id);
-    el.querySelector('.nm').onchange = e => { it.name = e.target.value; it.u = now(); save(); };
-    el.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { it.qty += +b.dataset.q; it.u = now(); if (it.qty <= 0) { kill(it.id); S.cart = S.cart.filter(x => x !== it); } save(); renderMoney(); });
-  });
-  if (S.cart.length) { $('#cartClr').onclick = () => { S.cart.forEach(i => kill(i.id)); S.cart = []; save(); renderMoney(); }; $('#cartPay').onclick = paySheet; }
+  renderCart();
   const hs = [...S.hist].sort((a, b) => b.ts - a.ts);
   $('#history').innerHTML = hs.length ? hs.slice(0, 40).map(h => `<div class="res"><span><b>${esc(h.acc)}</b><br><small class="mut">${new Date(h.ts).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${h.n} шт.${h.by ? ' · ' + esc(h.by) : ''}</small></span><span>−${fmt(h.charge, h.cur)}<br><small class="mut">${fmt(h.vnd, 'VND')}</small></span></div>`).join('') +
     `<div class="row"><button class="btn ghost sm" id="undo">Отменить последнюю</button></div><p class="mut sm">Всего потрачено: ${fmt(hs.reduce((s, h) => s + conv(h.charge, h.cur, 'KZT'), 0), 'KZT')}</p>` : '<p class="mut">Покупок пока нет.</p>';
   if (hs.length) $('#undo').onclick = () => { kill(hs[0].id); S.hist = S.hist.filter(h => h.id !== hs[0].id); save(); renderMoney(); toast('Покупка отменена, деньги возвращены'); };
-  $('#scCartInfo').textContent = S.cart.length ? `В корзине ${n} шт. на ${fmt(cartTotal('VND'), 'VND')} (${fmt(ct, 'KZT')})` : '';
+  renderScanBar();
+}
+function renderCart() {
+  const own = ownTotal('KZT'), ct = cartTotal('KZT');
+  const html = S.cart.length ? S.cart.map(i => `<div class="ci" data-id="${i.id}"><div class="w"><input class="nm" value="${esc(i.name)}" aria-label="Название"><div class="pr">${fmt(i.price, i.cur)} = ${fmt(conv(i.price, i.cur, i.cur === 'KZT' ? 'VND' : 'KZT'), i.cur === 'KZT' ? 'VND' : 'KZT')}</div></div><div class="qty"><button data-q="-1" aria-label="Меньше">−</button><span>${i.qty}</span><button data-q="1" aria-label="Больше">+</button></div></div>`).join('') +
+    `<div class="tot"><span>Итого</span><b>${fmt(cartTotal('VND'), 'VND')}</b></div><div class="tot2">${fmt(ct, 'KZT')} или ${fmt(cartTotal('USD'), 'USD')}${own > 0 ? `<br><span class="${own - ct < 0 ? 'neg' : ''}">после оплаты останется ${fmt(own - ct, 'KZT')}</span>` : ''}</div>
+     <div class="row"><button class="btn ghost" data-clr>Очистить</button><button class="btn" data-pay style="flex:1.600">Оплатили</button></div>` : '<p class="mut">В корзине пусто. Сканируйте ценники или вводите цены — здесь будет видно, на сколько набрали.</p>';
+  $$('.cartbox').forEach(box => {
+    if (document.activeElement && box.contains(document.activeElement) && renderMoney.soft) return;
+    box.innerHTML = html;
+    box.querySelectorAll('.ci').forEach(el => {
+      const it = S.cart.find(x => x.id === el.dataset.id);
+      el.querySelector('.nm').onchange = e => { it.name = e.target.value; it.u = now(); save(); };
+      el.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { it.qty += +b.dataset.q; it.u = now(); if (it.qty <= 0) { kill(it.id); S.cart = S.cart.filter(x => x !== it); } save(); renderMoney(); });
+    });
+    const c = box.querySelector('[data-clr]'); if (c) { c.onclick = () => { if (!window.confirm('Очистить корзину?')) return; S.cart.forEach(i => kill(i.id)); S.cart = []; save(); renderMoney(); }; box.querySelector('[data-pay]').onclick = paySheet; }
+  });
+}
+function openCart() { sheet('<h3>Корзина</h3><div class="cartbox"></div><button class="btn ghost" style="width:100%;margin-top:10px" id="cartX">Закрыть</button>'); $('#cartX').onclick = closeSheet; renderCart(); }
+function renderScanBar() {
+  const el = $('#scCartBar'); if (!el) return;
+  const n = S.cart.reduce((s, i) => s + i.qty, 0), own = ownTotal('KZT'), ct = cartTotal('KZT');
+  el.innerHTML = `<span class="q">${n}</span><span class="m"><b>${n ? fmt(cartTotal('VND'), 'VND') : 'Корзина пуста'}</b><small>${n ? fmt(ct, 'KZT') + (own > 0 ? ', останется ' + fmt(own - ct, 'KZT') : '') : 'добавляйте цены — сумма будет здесь'}</small></span><span class="go">›</span>`;
 }
 const confirmDel = () => window.confirm('Удалить?');
 function paySheet() {
@@ -274,107 +308,136 @@ function renderSync() {
 
 /* ---------- сканер ---------- */
 function parsePrice(raw, cur, kMode) {
-  let s = String(raw || '').replace(/\s+/g, '').replace(/[oO]/g, '0');
-  const m = s.match(/\d[\d.,]*\d|\d/g); if (!m) return null;
-  let best = null;
-  for (let tok of m) {
-    const after = s.slice(s.indexOf(tok) + tok.length, s.indexOf(tok) + tok.length + 1), k = /k/i.test(after);
-    let v;
-    const parts = tok.split(/[.,]/);
+  let s = ' ' + String(raw || '') + ' ';
+  s = s.replace(/(\d)[oO](?=[\d.,\s])/g, (m, a) => a + '0').replace(/(\d)[lI|](?=\d)/g, (m, a) => a + '1');
+  s = s.replace(/(\d)\s*([.,])\s*(?=\d{3}(?!\d))/g, (m, a, b) => a + b);
+  const re = /\d[\d.,]*\d|\d/g; let m, best = null;
+  while ((m = re.exec(s))) {
+    const tok = m[0], digits = tok.replace(/\D/g, '').length, k = /^\s?[kK](?![a-zA-Z])/.test(s.slice(m.index + tok.length, m.index + tok.length + 3));
+    const parts = tok.split(/[.,]/); let v;
     if (parts.length > 1 && parts.slice(1).every(p => p.length === 3)) v = +parts.join('');
     else if (parts.length > 1) v = parseFloat(parts.slice(0, -1).join('') + '.' + parts[parts.length - 1]);
     else v = +tok;
-    if (k) v *= 1000;
     if (!isFinite(v) || v <= 0) continue;
-    if (cur === 'VND') { if (kMode && v < 1000) v *= 1000; v = Math.round(v); if (v < 500 || v > 5e8) continue; }
-    else if (v > 1e7) continue;
-    if (best === null || String(tok).length > best.len) best = { v, len: String(tok).length };
+    if (k) v *= 1000;
+    let score = digits;
+    if (cur === 'VND') { if (kMode && v < 1000) v *= 1000; v = Math.round(v); if (digits > 9 || v < 1000 || v > 5e8 || v % 100) continue; if (v % 500 === 0) score += 2; }
+    else if (digits > 8 || v > 1e7) continue;
+    if (!best || score > best.score) best = { v, score };
   }
   return best ? best.v : null;
 }
-function pickLine(data) {
-  const lines = data.lines || []; let top = null;
-  for (const l of lines) {
-    const ws = (l.words || []).filter(w => /\d/.test(w.text)); if (!ws.length) continue;
-    const h = Math.max(...ws.map(w => w.bbox.y1 - w.bbox.y0));
-    if (!top || h > top.h) top = { h, text: ws.map(w => w.text).join('') };
+function readPrice(data, cur, kMode) {
+  let top = null;
+  for (const l of (data.lines || [])) {
+    const v = parsePrice(l.text, cur, kMode); if (!v) continue;
+    const ws = (l.words || []).filter(w => /\d/.test(w.text)), h = ws.length ? Math.max(...ws.map(w => w.bbox.y1 - w.bbox.y0)) : 0;
+    if (!top || h > top.h) top = { h, v };
   }
-  return top ? top.text : (data.text || '');
+  return top ? top.v : parsePrice(data.text, cur, kMode);
 }
-const SC = { stream: null, worker: null, busy: false, on: false, last: [], val: null, frozen: false, ignore: null, ignoreUntil: 0, loading: false };
+const SC = { stream: null, worker: null, busy: false, on: false, last: [], val: null, frozen: false, ignore: null, ignoreUntil: 0, loading: false, cur: G.get('scCur', 'VND'), zoom: 1, wake: null };
+const scOpt = () => ({ stop: G.get('scStop', true), k: G.get('scK', false), vib: G.get('scVib', true) });
 async function ocrWorker() {
   if (SC.worker) return SC.worker; if (SC.loading) return null; SC.loading = true;
   try {
     const w = await Tesseract.createWorker('eng', 1, { workerPath: 'vendor/tesseract/worker.min.js', corePath: 'vendor/tesseract/', langPath: 'vendor/tesseract', gzip: true, workerBlobURL: false });
-    await w.setParameters({ tessedit_char_whitelist: '0123456789.,kK', tessedit_pageseg_mode: '6' });
+    await w.setParameters({ tessedit_pageseg_mode: '6' });
     SC.worker = w;
-  } catch (e) { $('#scSub').textContent = 'Не удалось загрузить распознавание. Откройте один раз с интернетом.'; }
+  } catch (e) { scIdle('Распознавание не загрузилось', 'откройте приложение один раз с интернетом'); }
   SC.loading = false; return SC.worker;
 }
+function scIdle(big, sub) { $('#scRead').classList.add('wait'); $('#scBig').textContent = big; $('#scSub').textContent = sub || ''; $('#scActs').hidden = true; $('#roi').classList.remove('ok'); }
 async function camStart() {
   $('#camMsg').textContent = 'Запрашиваю камеру…';
   try {
     SC.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } });
-  } catch (e) { $('#camMsg').textContent = 'Нет доступа к камере. Разрешите её для сайта в настройках браузера. Цену можно ввести вручную ниже.'; return; }
+  } catch (e) { $('#camMsg').textContent = 'Камера недоступна. Разрешите её для этого сайта в настройках браузера — или вводите цены вручную.'; return; }
   const v = $('#vid'); v.srcObject = SC.stream; await v.play().catch(() => {});
-  $('#camStart').hidden = true; SC.on = true; G.set('camOk', 1);
+  $('#camStart').hidden = true; SC.on = true; SC.frozen = false; SC.last = []; G.set('camOk', 1);
   const tr = SC.stream.getVideoTracks()[0], caps = tr.getCapabilities?.() || {};
   if (caps.torch) { const b = $('#torch'); b.hidden = false; b.onclick = () => { const on = !b.classList.contains('on'); tr.applyConstraints({ advanced: [{ torch: on }] }).then(() => b.classList.toggle('on', on)).catch(() => {}); }; }
-  $('#scBig').textContent = 'Готовлю распознавание…'; await ocrWorker(); if (SC.on) { $('#scBig').textContent = 'Наведите на цену'; scanLoop(); }
+  navigator.wakeLock?.request('screen').then(w => SC.wake = w).catch(() => {});
+  scIdle('Готовлю сканер…'); await ocrWorker(); if (SC.on && SC.worker) { scIdle('Наведите на цену', 'цифры должны быть внутри рамки'); scanLoop(); }
 }
-function camStop() { SC.on = false; SC.stream?.getTracks().forEach(t => t.stop()); SC.stream = null; $('#camStart').hidden = false; $('#camMsg').textContent = ''; $('#torch').hidden = true; $('#torch').classList.remove('on'); }
+function camStop() { SC.on = false; SC.stream?.getTracks().forEach(t => t.stop()); SC.stream = null; SC.wake?.release?.().catch(() => {}); SC.wake = null; $('#camStart').hidden = false; $('#camMsg').textContent = ''; $('#torch').hidden = true; $('#torch').classList.remove('on'); }
 const cv = document.createElement('canvas');
 function grab() {
   const v = $('#vid'), box = $('#cam').getBoundingClientRect(), r = $('#roi').getBoundingClientRect();
   if (!v.videoWidth) return null;
-  const sc = Math.max(box.width / v.videoWidth, box.height / v.videoHeight), ox = (v.videoWidth * sc - box.width) / 2, oy = (v.videoHeight * sc - box.height) / 2;
+  const sc = Math.max(box.width / v.videoWidth, box.height / v.videoHeight) * SC.zoom, ox = (v.videoWidth * sc - box.width) / 2, oy = (v.videoHeight * sc - box.height) / 2;
   const sx = (r.left - box.left + ox) / sc, sy = (r.top - box.top + oy) / sc, sw = r.width / sc, sh = r.height / sc;
-  const W = 720, H = Math.round(W * sh / sw); cv.width = W; cv.height = H;
+  const W = 900, H = Math.round(W * sh / sw); cv.width = W; cv.height = H;
   const c = cv.getContext('2d', { willReadFrequently: true }); c.drawImage(v, sx, sy, sw, sh, 0, 0, W, H);
-  const im = c.getImageData(0, 0, W, H), p = im.data; let mn = 255, mx = 0;
-  for (let i = 0; i < p.length; i += 4) { const g = p[i] * .3 + p[i + 1] * .59 + p[i + 2] * .11; p[i] = g; if (g < mn) mn = g; if (g > mx) mx = g; }
-  const k = 255 / Math.max(40, mx - mn);
-  for (let i = 0; i < p.length; i += 4) { const g = Math.max(0, Math.min(255, (p[i] - mn) * k)); p[i] = p[i + 1] = p[i + 2] = g; }
+  const im = c.getImageData(0, 0, W, H), p = im.data; let mn = 255, mx = 0, sum = 0;
+  for (let i = 0; i < p.length; i += 4) { const g = p[i] * .3 + p[i + 1] * .59 + p[i + 2] * .11; p[i] = g; sum += g; if (g < mn) mn = g; if (g > mx) mx = g; }
+  const k = 255 / Math.max(40, mx - mn), inv = sum / (p.length / 4) < 105;
+  for (let i = 0; i < p.length; i += 4) { let g = Math.max(0, Math.min(255, (p[i] - mn) * k)); if (inv) g = 255 - g; p[i] = p[i + 1] = p[i + 2] = g; }
   c.putImageData(im, 0, 0); return cv;
 }
 async function scanLoop() {
   if (!SC.on) return;
-  if (!SC.frozen && !SC.busy && SC.worker && !document.hidden) {
+  if (!SC.frozen && !SC.busy && SC.worker && !document.hidden && $('#sheet').hidden) {
     SC.busy = true;
-    try {
-      const img = grab();
-      if (img) { const { data } = await SC.worker.recognize(img); onRead(parsePrice(pickLine(data), $('#scCur').value, $('#scK').checked)); }
-    } catch {}
+    try { const img = grab(); if (img) { const { data } = await SC.worker.recognize(img); if (!SC.frozen) onRead(readPrice(data, SC.cur, scOpt().k)); } } catch {}
     SC.busy = false;
   }
-  setTimeout(scanLoop, 220);
+  setTimeout(scanLoop, 180);
 }
 function onRead(v) {
   SC.last.push(v); if (SC.last.length > 3) SC.last.shift();
   const cnt = {}; SC.last.forEach(x => { if (x) cnt[x] = (cnt[x] || 0) + 1; });
   const st = Object.keys(cnt).find(x => cnt[x] >= 2);
-  if (st) showScan(+st, true); else { $('#roi').classList.remove('ok'); $('#scanres').classList.add('dim'); if (!SC.val) $('#scBig').textContent = 'Наведите на цену'; }
+  if (SC.ignore !== null && v !== SC.ignore && ++SC.miss >= 2) SC.ignore = null;
+  if (st && +st !== SC.ignore) lock(+st);
+  else if (!scOpt().stop && SC.last.every(x => !x)) { SC.val = null; scIdle('Наведите на цену', 'цифры должны быть внутри рамки'); }
 }
-function showScan(v, live) {
-  const cur = $('#scCur').value; SC.val = v;
-  $('#roi').classList.toggle('ok', !!live); $('#scanres').classList.remove('dim');
-  const bigC = cur === 'KZT' ? 'VND' : 'KZT', third = CURS.find(c => c !== cur && c !== bigC);
-  $('#scBig').textContent = fmt(conv(v, cur, bigC), bigC);
-  $('#scSub').textContent = `${fmt(v, cur)} = ${fmt(conv(v, cur, third), third)}`;
-  if ($('#scCart').checked && !(SC.ignore === v && Date.now() < SC.ignoreUntil)) { $('#buyBar').hidden = false; $('#buyBar b').textContent = `Покупаете за ${fmt(v, cur)}?`; SC.frozen = true; }
+function showPrice(v) {
+  const cur = SC.cur, bigC = cur === 'KZT' ? 'VND' : 'KZT', third = CURS.find(c => c !== cur && c !== bigC);
+  $('#scRead').classList.remove('wait'); $('#scBig').textContent = fmt(conv(v, cur, bigC), bigC);
+  $('#scSub').textContent = `${fmt(v, cur)} или ${fmt(conv(v, cur, third), third)}`;
+}
+function lock(v) {
+  const o = scOpt(), fresh = SC.val !== v; SC.val = v; showPrice(v);
+  $('#roi').classList.add('ok'); $('#scActs').hidden = false; $('#buyNo').hidden = !o.stop; $('#scActs').style.gridTemplateColumns = o.stop ? '' : '1fr';
+  if (o.stop) { SC.frozen = true; $('#vid').pause(); }
+  if (fresh && o.vib) navigator.vibrate?.(30);
+}
+function resume(skip) {
+  SC.ignore = skip ? SC.val : null; SC.miss = 0;
+  SC.val = null; SC.last = []; SC.frozen = false; if (SC.on) $('#vid').play().catch(() => {});
+  scIdle('Наведите на цену', 'цифры должны быть внутри рамки');
+}
+function keySheet() {
+  sheet(`<h3>Цена вручную, ${SYM[SC.cur]}</h3><input id="kpIn" class="kp" inputmode="decimal" placeholder="0" autocomplete="off"><p class="mut" id="kpEq">&nbsp;</p>
+    <div class="row"><button class="btn ghost" id="kp000">000</button><button class="btn" id="kpAdd" style="flex:1.600">В корзину</button></div>`);
+  const i = $('#kpIn'), val = () => num(i.value) * (SC.cur === 'VND' && scOpt().k && num(i.value) < 1000 ? 1000 : 1);
+  const upd = () => { const v = val(); $('#kpEq').textContent = v ? CURS.filter(c => c !== SC.cur).map(c => fmt(conv(v, SC.cur, c), c)).join(' или ') : ' '; };
+  i.oninput = () => { if (SC.cur !== 'USD' && num(i.value) && !/[.,]$/.test(i.value)) i.value = plain(num(i.value), SC.cur); upd(); };
+  $('#kp000').onclick = () => { if (num(i.value)) { i.value = plain(num(i.value) * 1000, SC.cur); upd(); } i.focus(); };
+  $('#kpAdd').onclick = () => { const v = val(); if (!v) return toast('Введите цену'); closeSheet(); addCart(v, SC.cur); };
+  setTimeout(() => i.focus(), 60);
+}
+function scanSettings() {
+  const o = scOpt();
+  sheet(`<h3>Сканер</h3>
+    <label class="chk"><input type="checkbox" id="oStop" ${o.stop ? 'checked' : ''}> Останавливаться на цене и спрашивать «В корзину?»</label>
+    <label class="chk"><input type="checkbox" id="oK" ${o.k ? 'checked' : ''}> Цены в тысячах: 125 на ценнике значит 125 000 ₫</label>
+    <label class="chk"><input type="checkbox" id="oVib" ${o.vib ? 'checked' : ''}> Вибрация, когда цена поймана</label>
+    <p class="mut sm">Плохо читает? Нажмите «1×», чтобы приблизить, включите свет и держите ценник ровно. Крупная цена должна занимать примерно треть рамки.</p>
+    <button class="btn" style="width:100%" id="oOk">Готово</button>`);
+  $('#oStop').onchange = e => G.set('scStop', e.target.checked); $('#oK').onchange = e => G.set('scK', e.target.checked); $('#oVib').onchange = e => G.set('scVib', e.target.checked);
+  $('#oOk').onclick = () => { closeSheet(); resume(false); };
 }
 function initScan() {
-  $('#camBtn').onclick = camStart;
-  $('#cam').onclick = e => { if (e.target.closest('.camtop,.camstart') || !SC.on) return; SC.frozen = !SC.frozen; toast(SC.frozen ? 'Заморожено. Нажмите ещё раз, чтобы продолжить' : 'Сканирую'); };
-  const answer = yes => { if (yes && SC.val) addCart(SC.val, $('#scCur').value); SC.ignore = SC.val; SC.ignoreUntil = Date.now() + 6000; SC.last = []; SC.frozen = false; $('#buyBar').hidden = true; };
-  $('#buyYes').onclick = () => answer(true); $('#buyNo').onclick = () => answer(false);
-  $('#scCart').checked = G.get('scCart', true); $('#scK').checked = G.get('scK', false);
-  $('#scCart').onchange = e => { G.set('scCart', e.target.checked); if (!e.target.checked) { $('#buyBar').hidden = true; SC.frozen = false; } };
-  $('#scK').onchange = e => G.set('scK', e.target.checked);
-  $('#scCur').onchange = () => { SC.last = []; SC.val = null; };
-  $('#scManAdd').onclick = () => { const v = parsePrice($('#scManual').value, $('#scCur').value, $('#scK').checked) || num($('#scManual').value); if (!v) return toast('Введите цену'); showScanManual(v); $('#scManual').value = ''; };
+  $('#camBtn').onclick = camStart; $('#camKey').onclick = keySheet; $('#scKey').onclick = keySheet; $('#scSet').onclick = scanSettings; $('#scCartBar').onclick = openCart;
+  const cur = () => $$('#scCur button').forEach(b => b.classList.toggle('on', b.dataset.c === SC.cur)); cur();
+  $$('#scCur button').forEach(b => b.onclick = () => { SC.cur = b.dataset.c; G.set('scCur', SC.cur); cur(); resume(false); });
+  $('#zoomBtn').onclick = () => { SC.zoom = SC.zoom >= 3 ? 1 : SC.zoom + 1; $('#zoomBtn').textContent = SC.zoom + '×'; $('#zoomBtn').classList.toggle('on', SC.zoom > 1); $('#vid').style.transform = `scale(${SC.zoom})`; SC.last = []; };
+  $('#buyYes').onclick = () => { if (SC.val) addCart(SC.val, SC.cur); resume(true); };
+  $('#buyNo').onclick = () => resume(true);
+  scIdle('Наведите на цену', 'цифры должны быть внутри рамки');
 }
-function showScanManual(v) { addCart(v, $('#scCur').value); }
 
 /* ---------- места ---------- */
 let map, cat = 'Все';
@@ -385,7 +448,7 @@ function renderPlaces() {
   $('#placeCats').innerHTML = cats.map(c => `<button class="chip ${c === cat ? 'on' : ''}">${c}</button>`).join('');
   $$('#placeCats .chip').forEach(b => b.onclick = () => { cat = b.textContent; renderPlaces(); });
   $('#places').innerHTML = PLACES.filter(p => cat === 'Все' || p.c === cat).map(p => `<div class="card pl"><span class="tag">${p.c} · ${km(TRIP.hotel, p) < 1 ? 'у отеля' : '≈' + Math.round(km(TRIP.hotel, p) * 1.3) + ' км от отеля'}</span><br><b>${esc(p.n)}</b><p>${esc(p.d)}</p>${p.tip ? `<p class="mut sm">${esc(p.tip)}</p>` : ''}<div class="row"><button class="btn ghost sm" data-go="${esc(p.n)}">На карте</button><a class="btn sm" target="_blank" rel="noopener" href="${gdir(p.q)}">Маршрут</a></div></div>`).join('');
-  $$('#places [data-go]').forEach(b => b.onclick = () => { const p = PLACES.find(x => x.n === b.dataset.go); if (map) { map.setView([p.lat, p.lon], 13); p._m?.openPopup(); $('main').scrollTo({ top: 0, behavior: 'smooth' }); } else toast('Карта недоступна без интернета'); });
+  $$('#places [data-go]').forEach(b => b.onclick = () => { const p = PLACES.find(x => x.n === b.dataset.go); if (map) { map.setView([p.lat, p.lon], 13); p._m?.openPopup(); $('main').scrollTo({ top: 0, behavior: 'smooth' }); } else toast('Карта откроется, когда появится интернет'); });
   $('#routes').innerHTML = ROUTES.map(r => `<div class="card"><b>${esc(r.n)}</b><p class="mut sm">${r.s.map(esc).join(' → ')}</p><p>${esc(r.d)}</p><a class="btn ghost sm" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&origin=${TRIP.hotel.lat},${TRIP.hotel.lon}&destination=${encodeURIComponent(PLACES.find(p => p.n === r.s[r.s.length - 1]).q)}&waypoints=${encodeURIComponent(r.s.slice(0, -1).map(n => PLACES.find(p => p.n === n).q).join('|'))}">Открыть маршрут в Google Maps</a></div>`).join('');
 }
 function initMap() {
@@ -463,15 +526,21 @@ function initDocs() {
 
 /* ---------- навигация и запуск ---------- */
 function show(t) {
+  if (t === 'map' || t === 'info') t = 'guide';
   $$('.tab').forEach(s => s.classList.toggle('on', s.id === 't-' + t)); $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
-  $('main').scrollTop = 0; G.set('tab', t);
+  document.body.classList.toggle('scanning', t === 'scan'); $('main').scrollTop = 0; G.set('tab', t);
   if (t !== 'scan' && SC.on) camStop();
   if (t === 'scan' && !SC.on && G.get('camOk', 0)) camStart();
-  if (t === 'map') setTimeout(initMap, 50);
+  if (t === 'guide') guide(G.get('gseg', 'places'));
+}
+function guide(g) {
+  $$('#gSeg button').forEach(b => b.classList.toggle('on', b.dataset.g === g)); $$('.gp').forEach(p => p.hidden = p.dataset.g !== g); G.set('gseg', g);
+  if (g === 'places') setTimeout(initMap, 60);
 }
 function renderAll() { renderRates(); convFill(); renderHome(); renderMoney(); renderBank(); }
 function boot() {
-  $$('#nav button').forEach(b => b.onclick = () => show(b.dataset.t));
+  applyTheme(); matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);
+  $$('#nav button').forEach(b => b.onclick = () => show(b.dataset.t)); $$('#gSeg button').forEach(b => b.onclick = () => guide(b.dataset.g));
   $('#whoBtn').onclick = () => pickWho(false);
   initConv(); initHome(); initMoney(); initScan(); initDocs(); renderInfo(); renderPlaces(); renderDocs(); renderWx();
   window.__m = { merge }; if (who && TRIP.people.includes(who)) loadProfile(); else { who = TRIP.people[0]; loadProfile(); pickWho(true); }
@@ -483,5 +552,5 @@ function boot() {
   const t = G.get('tab', 'home'); if (t !== 'home' && t !== 'scan') show(t);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
-window.__t = { parsePrice, pickLine };
+window.__t = { parsePrice, readPrice };
 document.addEventListener('DOMContentLoaded', boot);

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-mode="light" data-acc="sea">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0d9488">
+<meta name="theme-color" content="#0a7c86">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,31 +18,27 @@
 </head>
 <body>
 <header>
-  <div class="hd-l">
-    <b>Фукуок</b>
-    <span id="net" class="pill">…</span>
-  </div>
-  <button id="whoBtn" class="who" aria-label="Сменить профиль"></button>
+  <div class="hd-l"><b>Фукуок</b><span id="net" class="pill">…</span></div>
+  <button id="whoBtn" class="who" aria-label="Профиль и оформление"></button>
 </header>
 
 <main>
 <!-- ============ ПОЕЗДКА ============ -->
 <section id="t-home" class="tab on">
   <div class="card hero" id="nextCard"></div>
+  <div id="flights"></div>
+  <div class="card" id="wx"></div>
   <div class="grid2">
-    <div class="card clock"><small>Астана / Актау</small><b id="clkKZ">--:--</b><small id="dateKZ"></small></div>
+    <div class="card clock"><small>Казахстан</small><b id="clkKZ">--:--</b><small id="dateKZ"></small></div>
     <div class="card clock"><small>Фукуок</small><b id="clkVN">--:--</b><small id="dateVN"></small></div>
   </div>
-  <div class="card" id="wx"><h3>Погода на Фукуоке</h3><p class="mut">Загружаю…</p></div>
-  <h2>Рейсы</h2>
-  <div id="flights"></div>
   <h2>План по времени</h2>
   <div class="card" id="timeline"></div>
   <div class="row">
     <button class="btn" id="icsBtn">В календарь телефона</button>
     <button class="btn ghost" id="notifBtn">Уведомления</button>
   </div>
-  <p class="mut sm">«В календарь» — самый надёжный способ: телефон сам напомнит за час и за 15 минут, даже без интернета. Уведомления из самого приложения приходят, только пока оно открыто или свёрнуто недавно.</p>
+  <p class="mut sm">Календарь телефона напомнит за час и за 15 минут даже без интернета. Уведомления приложения приходят, только пока оно открыто.</p>
   <details class="card"><summary>Добавить своё событие</summary>
     <div class="form">
       <input id="evTitle" placeholder="Например: вылет Актау → Астана">
@@ -53,36 +49,36 @@
   </details>
   <h2>Отель и трансфер</h2>
   <div class="card">
-    <b>Наш отель</b>
-    <p class="mut">Север острова, район Grand World. Заезд 27.11 после 15:00, выезд 03.12 до 12:00. Завтраки включены. Групповой трансфер аэропорт ⇄ отель. Название отеля — в ваучере.</p>
+    <p>Север острова, район Grand World. Заезд 27 ноября после 15:00, выезд 3 декабря до 12:00. Завтраки включены. Трансфер из аэропорта и обратно — групповой. Название отеля смотрите в ваучере.</p>
     <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=10.3323,103.8573">Открыть на карте</a>
   </div>
 </section>
 
-<!-- ============ КОНВЕРТЕР ============ -->
+<!-- ============ КУРС ============ -->
 <section id="t-conv" class="tab">
-  <div class="card">
-    <label class="cur"><span>₫ донги</span><input id="cVND" inputmode="decimal" autocomplete="off" placeholder="0"></label>
-    <label class="cur"><span>₸ тенге</span><input id="cKZT" inputmode="decimal" autocomplete="off" placeholder="0"></label>
-    <label class="cur"><span>$ доллары</span><input id="cUSD" inputmode="decimal" autocomplete="off" placeholder="0"></label>
+  <div class="card conv">
+    <label class="cur"><span><b>₫</b>донги</span><input id="cVND" inputmode="decimal" autocomplete="off" placeholder="0"></label>
+    <label class="cur"><span><b>₸</b>тенге</span><input id="cKZT" inputmode="decimal" autocomplete="off" placeholder="0"></label>
+    <label class="cur"><span><b>$</b>доллары</span><input id="cUSD" inputmode="decimal" autocomplete="off" placeholder="0"></label>
     <div class="chips" id="chips"></div>
-    <div class="row">
-      <button class="btn ghost" id="cClear">Очистить</button>
+    <div class="row keys">
+      <button class="btn ghost" id="cClear">Стереть</button>
+      <button class="btn ghost" id="c000">000</button>
       <button class="btn" id="cToCart">В корзину</button>
     </div>
   </div>
   <div class="card">
     <div class="row sp"><div><b id="rateLine">Курс</b><br><small class="mut" id="rateAge"></small></div>
-    <button class="btn ghost" id="rateUpd">Обновить</button></div>
-    <details><summary>Свой курс (как в обменнике)</summary>
+    <button class="btn ghost sm" id="rateUpd">Обновить</button></div>
+    <details><summary>Считать по курсу обменника</summary>
       <div class="form">
         <label>1 $ = <input id="myVND" inputmode="decimal" placeholder="донгов"> ₫</label>
         <label>1 $ = <input id="myKZT" inputmode="decimal" placeholder="тенге"> ₸</label>
-        <label class="chk"><input type="checkbox" id="myOn"> считать по моему курсу</label>
+        <label class="chk"><input type="checkbox" id="myOn"> считать по этому курсу</label>
       </div>
     </details>
   </div>
-  <h2>Шпаргалка по купюрам</h2>
+  <h2>Купюры донгов</h2>
   <div class="card"><table id="cheat"></table></div>
 </section>
 
@@ -90,42 +86,32 @@
 <section id="t-scan" class="tab">
   <div class="cam" id="cam">
     <video id="vid" playsinline muted autoplay></video>
-    <div class="roi" id="roi"><i></i></div>
+    <div class="frame" id="roi"><i></i></div>
     <div class="camtop">
-      <select id="scCur"><option value="VND">ценник в ₫</option><option value="USD">ценник в $</option><option value="KZT">ценник в ₸</option></select>
-      <button id="torch" class="mini" hidden>Свет</button>
+      <div class="seg" id="scCur" role="group" aria-label="Валюта ценника">
+        <button data-c="VND">₫</button><button data-c="USD">$</button><button data-c="KZT">₸</button>
+      </div>
+      <div class="tools">
+        <button id="zoomBtn" aria-label="Приблизить">1×</button>
+        <button id="torch" hidden>Свет</button>
+        <button id="scKey" aria-label="Ввести цену вручную">123</button>
+        <button id="scSet" aria-label="Настройки сканера"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M16 4.500v5M8 14.500v5"/></svg></button>
+      </div>
     </div>
-    <div class="scanres" id="scanres">
-      <div class="big" id="scBig">Наведите на цену</div>
-      <div class="sub" id="scSub">цифры должны попасть в рамку</div>
+    <div class="dock">
+      <div class="read" id="scRead"><div class="big" id="scBig">Наведите на цену</div><div class="sub" id="scSub">цифры должны быть внутри рамки</div></div>
+      <div class="acts" id="scActs" hidden><button class="btn dk" id="buyNo">Дальше</button><button class="btn" id="buyYes">В корзину</button></div>
+      <button class="cartbar" id="scCartBar"></button>
     </div>
-    <div class="camstart" id="camStart"><button class="btn" id="camBtn">Включить камеру</button><p id="camMsg" class="sm"></p></div>
+    <div class="camstart" id="camStart"><button class="btn" id="camBtn">Включить камеру</button><p id="camMsg" class="sm"></p><button class="btn dk sm" id="camKey">Ввести цену вручную</button></div>
   </div>
-  <div class="buy" id="buyBar" hidden>
-    <b>Покупаете?</b>
-    <button class="btn" id="buyYes">Да, в корзину</button>
-    <button class="btn ghost" id="buyNo">Нет</button>
-  </div>
-  <div class="card">
-    <label class="chk"><input type="checkbox" id="scCart"> режим корзины — спрашивать «Покупаете?»</label>
-    <label class="chk"><input type="checkbox" id="scK"> цены в тысячах (125 = 125 000 ₫)</label>
-    <div class="row">
-      <input id="scManual" inputmode="decimal" placeholder="или введите цену вручную">
-      <button class="btn" id="scManAdd">В корзину</button>
-    </div>
-    <p class="mut sm" id="scCartInfo"></p>
-  </div>
-  <p class="mut sm">Сканер работает без интернета. Держите телефон ровно, цена — крупно в рамке. Нажмите на картинку, чтобы «заморозить» цифру.</p>
 </section>
 
 <!-- ============ ДЕНЬГИ ============ -->
 <section id="t-money" class="tab">
   <div class="card hero" id="moneyTotal"></div>
-  <h2>Мои деньги</h2>
-  <div id="accounts"></div>
-  <button class="btn ghost" id="accAdd">+ ещё счёт или кошелёк</button>
   <h2>Корзина</h2>
-  <div class="card" id="cart"></div>
+  <div class="card cartbox"></div>
   <details class="card"><summary>Добавить покупку вручную</summary>
     <div class="form">
       <input id="mName" placeholder="Что это (необязательно)">
@@ -134,47 +120,52 @@
       <button class="btn" id="mAdd">В корзину</button>
     </div>
   </details>
-  <h2>История покупок</h2>
+  <h2>Сколько у нас денег</h2>
+  <div id="accounts"></div>
+  <button class="btn ghost" id="accAdd">Добавить счёт или кошелёк</button>
+  <h2>Что уже купили</h2>
   <div class="card" id="history"></div>
 </section>
 
-<!-- ============ МЕСТА ============ -->
-<section id="t-map" class="tab">
-  <div id="map"></div>
-  <p class="mut sm" id="mapNote">Карта подгружается из интернета; то, что уже смотрели, остаётся и без сети. Список мест работает всегда. Точки на карте примерные — кнопка «Маршрут» открывает Google Maps по названию.</p>
-  <div class="chips" id="placeCats"></div>
-  <div id="places"></div>
-  <h2>Готовые маршруты</h2>
-  <div id="routes"></div>
-</section>
-
-<!-- ============ ИНФО ============ -->
-<section id="t-info" class="tab">
-  <h2>Карта банка или наличные?</h2>
-  <div class="card" id="bank"></div>
-  <h2>Общий бюджет</h2>
-  <div class="card" id="syncCard"></div>
-  <h2>Правила и советы</h2>
-  <div id="rules"></div>
-  <h2>Документы на этом телефоне</h2>
-  <div class="card">
-    <p class="mut sm">Добавьте посадочные, ваучер, страховку — они сохранятся только в этом телефоне и откроются без интернета. На сайт они не загружаются.</p>
-    <div id="docs"></div>
-    <label class="btn ghost filebtn">+ добавить файл<input type="file" id="docFile" multiple accept="application/pdf,image/*" hidden></label>
+<!-- ============ ГИД ============ -->
+<section id="t-guide" class="tab">
+  <div class="seg wide" id="gSeg">
+    <button data-g="places">Места</button><button data-g="rules">Правила</button><button data-g="bank">Банк</button><button data-g="docs">Документы</button>
   </div>
-  <h2>Контакты</h2>
-  <div class="card" id="contacts"></div>
-  <p class="mut sm" id="ver"></p>
+  <div class="gp" data-g="places">
+    <div id="map"></div>
+    <p class="mut sm">Карта грузится из интернета; что уже смотрели, откроется и без сети. Точки примерные, кнопка «Маршрут» ведёт в Google Maps.</p>
+    <div class="chips" id="placeCats"></div>
+    <div id="places"></div>
+    <h2>Готовые маршруты</h2>
+    <div id="routes"></div>
+  </div>
+  <div class="gp" data-g="rules" hidden><div id="rules"></div></div>
+  <div class="gp" data-g="bank" hidden>
+    <h2>Общий бюджет</h2>
+    <div class="card" id="syncCard"></div>
+    <h2>Картой или наличными</h2>
+    <div class="card" id="bank"></div>
+  </div>
+  <div class="gp" data-g="docs" hidden>
+    <div class="card">
+      <p class="mut sm">Посадочные, ваучер, страховка. Файлы остаются только в этом телефоне и открываются без интернета.</p>
+      <div id="docs"></div>
+      <label class="btn ghost filebtn">Добавить файл<input type="file" id="docFile" multiple accept="application/pdf,image/*" hidden></label>
+    </div>
+    <h2>Телефоны</h2>
+    <div class="card" id="contacts"></div>
+    <p class="mut sm" id="ver"></p>
+  </div>
 </section>
 </main>
 
 <nav id="nav">
-  <button data-t="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Поездка</button>
+  <button data-t="home" class="on"><svg viewBox="0 0 24 24"><path d="M21 3L3 10.500l7 2.500 2.500 7zM10 13l11-10"/></svg>Поездка</button>
   <button data-t="conv"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Курс</button>
-  <button data-t="scan"><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg>Сканер</button>
-  <button data-t="money"><svg viewBox="0 0 24 24"><path d="M3 5h2l2.5 11h10L20 8H7M9 20a1 1 0 1 0 0-.01M17 20a1 1 0 1 0 0-.01"/></svg>Деньги<i id="cartBadge" hidden></i></button>
-  <button data-t="map"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.500C5 14.800 12 21 12 21zM12 12a2.500 2.500 0 1 0 0-5 2.500 2.500 0 0 0 0 5z"/></svg>Места</button>
-  <button data-t="info"><svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.500v.01"/></svg>Инфо</button>
+  <button data-t="scan" class="navscan"><span><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></span>Сканер</button>
+  <button data-t="money"><svg viewBox="0 0 24 24"><path d="M3 5h2l2.500 11h10L20 8H7M9 20a1 1 0 1 0 0-.01M17 20a1 1 0 1 0 0-.01"/></svg>Деньги<i id="cartBadge" hidden></i></button>
+  <button data-t="guide"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.200 7-11.500A7 7 0 0 0 5 9.500C5 14.800 12 21 12 21zM12 12a2.500 2.500 0 1 0 0-5 2.500 2.500 0 0 0 0 5z"/></svg>Гид</button>
 </nav>
 
 <div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheetIn"></div></div>
