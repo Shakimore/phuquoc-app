@@ -1,175 +1,291 @@
 <!DOCTYPE html>
-<html lang="ru" data-mode="light" data-acc="sea">
+<html lang="ru" data-theme="yellow">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0a7c86">
+<meta name="theme-color" content="#e8e8e3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Фукуок">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preload" href="SourceSans3.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="app.css">
-<title>Фукуок — наша поездка</title>
+<title>Фукуок</title>
+<script>try{var t=JSON.parse(localStorage.getItem('pq.theme2')||'null');if(t){var d=document.documentElement;var m=t.t==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'night':'yellow'):t.t;d.dataset.theme=m;if(t.big)d.dataset.big='1'}}catch(e){}</script>
 </head>
 <body>
-<header>
-  <div class="hd-l"><b>Фукуок</b><span id="net" class="pill">…</span></div>
-  <button id="whoBtn" class="who" aria-label="Профиль и оформление"></button>
+<svg class="sprite" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <symbol id="i-trip" viewBox="0 0 24 24"><path d="M2.5 20.5h19"/><path d="M5.6 15.4 3.2 11.7l1.7-.6 2.9 1.9 4.1-1.6-4.3-5.3 2.1-.8 6.8 4.4 3.5-1.4c1-.4 2.1 0 2.4.8.3.9-.2 1.8-1.1 2.2L8 16.9z"/></symbol>
+    <symbol id="i-docs" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3.2"/><path d="M8.8 10h6.4M12 6.8c-1.2 1-1.2 5.4 0 6.4M12 6.8c1.2 1 1.2 5.4 0 6.4M8.5 17h7"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8.5v-3A1.500 1.500 0 0 1 5.500 4h3M15.500 4h3A1.500 1.500 0 0 1 20 5.500v3M20 15.500v3a1.500 1.500 0 0 1-1.500 1.500h-3M8.500 20h-3A1.500 1.500 0 0 1 4 18.500v-3M7 12h10"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 8V6.800A1.800 1.800 0 0 1 5.800 5H17v3"/><rect x="4" y="8" width="16.500" height="11.500" rx="2"/><path d="M16 13.800h.01"/></symbol>
+    <symbol id="i-guide" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.800 8.200-2.300 5.300-5.300 2.300 2.300-5.300z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.500" width="14" height="10" rx="2"/><path d="M8 10.500V8a4 4 0 0 1 8 0v2.500M12 14.500v2"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.500 2h-15z"/><path d="M10 20.500a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3.500v11M7.500 8 12 3.500 16.500 8"/><path d="M5 12.500v6A1.500 1.500 0 0 0 6.500 20h11a1.500 1.500 0 0 0 1.500-1.500v-6"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M7.500 3H14l5 5v11.500a1.500 1.500 0 0 1-1.500 1.500h-10A1.500 1.500 0 0 1 6 19.500v-15A1.500 1.500 0 0 1 7.500 3z"/><path d="M14 3v5h5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8.500A1.500 1.500 0 0 1 5.500 7h2.200l1.600-2h5.400l1.600 2h2.200A1.500 1.500 0 0 1 20 8.500v9a1.500 1.500 0 0 1-1.500 1.500h-13A1.500 1.500 0 0 1 4 17.500z"/><circle cx="12" cy="12.500" r="3.500"/></symbol>
+    <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.500 7.500h7M8.500 12h.01M12 12h.01M15.500 12h.01M8.500 16h.01M12 16h.01M15.500 16h.01"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3 5 13.500h6L10 21l8-10.500h-6z"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.500" y="8.500" width="11.500" height="11.500" rx="2"/><path d="M15.500 8.500V5.500A1.500 1.500 0 0 0 14 4H5.500A1.500 1.500 0 0 0 4 5.500V14a1.500 1.500 0 0 0 1.500 1.500h3"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5.200 4h3.300l1.500 4.400-2.200 1.400a11 11 0 0 0 6.400 6.400l1.400-2.200 4.400 1.500v3.300a1.600 1.600 0 0 1-1.700 1.600A15.700 15.700 0 0 1 3.600 5.700 1.600 1.600 0 0 1 5.200 4z"/></symbol>
+    <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 18.500v-12M3 13.500h18v5M21 13.500a3 3 0 0 0-3-3h-7v3"/><circle cx="7" cy="10.800" r="1.600"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.500c0 4.300-3 7.700-7 9.500-4-1.800-7-5.200-7-9.500V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 7.500A1.500 1.500 0 0 1 5.500 6h13A1.500 1.500 0 0 1 20 7.500V10a2 2 0 0 0 0 4v2.500a1.500 1.500 0 0 1-1.500 1.500h-13A1.500 1.500 0 0 1 4 16.500V14a2 2 0 0 0 0-4z"/><path d="M14.500 7v1.500M14.500 11.250v1.500M14.500 15.500V17"/></symbol>
+    <symbol id="i-pass" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M15.500 6v12M6.500 10h5.500M6.500 13.500h3.500"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.500" r="3.500"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7.500"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.500"/><path d="m16 16 4.500 4.500M11 8.500v5M8.500 11h5"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3.500 6v14L9 18l6 2 5.500-2V4L15 6z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.200 7-11.500A7 7 0 0 0 5 9.500C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.500" r="2.500"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.500V12l3 2"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M9 11v5M15 11v5"/></symbol>
+    <symbol id="i-gate" viewBox="0 0 24 24"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16"/><path d="M15 9h4a1 1 0 0 1 1 1v11M2.500 21h19M11.500 13v1.500"/></symbol>
+    <symbol id="i-land" viewBox="0 0 24 24"><path d="M2.500 20.500h19"/><path d="M4.300 8.300 6.100 4.900l1.700.5.800 3.300 4 1.700.2-6.800 2.100.6 2.600 7.600 3.400 1.400c1 .4 1.500 1.400 1.200 2.200-.3.900-1.300 1.200-2.200.8L5.500 11.300z"/></symbol>
+    <symbol id="i-sync" viewBox="0 0 24 24"><path d="M19.500 11A7.600 7.600 0 0 0 5.400 7.300M4.500 13a7.600 7.600 0 0 0 14.100 3.700"/><path d="M4.500 4v3.700h3.700M19.500 20v-3.700h-3.700"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h3.500A1.500 1.500 0 0 1 20 5.500v13a1.500 1.500 0 0 1-1.500 1.500H15M10 8l-4 4 4 4M6 12h10"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M9.500 6 4 11.500 9.500 17M4 11.500h11a5 5 0 0 1 5 5v1"/></symbol>
+    <symbol id="i-cash" viewBox="0 0 24 24"><rect x="3" y="6.500" width="18" height="11" rx="1.500"/><circle cx="12" cy="12" r="2.500"/><path d="M6.500 9.500v5M17.500 9.500v5"/></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4.500h2.200l2.300 11h10.200L20 8H6.300"/><circle cx="9" cy="19.500" r="1.200"/><circle cx="17" cy="19.500" r="1.200"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6.500a3.500 3.500 0 0 0 0-7h-5a3.500 3.500 0 0 1 0-7H16"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.500v2M12 19.500v2M2.500 12h2M19.500 12h2M5.300 5.300l1.400 1.400M17.300 17.300l1.400 1.400M5.300 18.700l1.400-1.400M17.300 6.700l1.400-1.400"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ ВХОД ============ -->
+<div id="lock" class="lock" hidden>
+  <form class="lock-in" id="lockForm" autocomplete="on">
+    <div class="band lock-band">
+      <span class="tile"><svg><use href="#i-lock"/></svg></span>
+      <span class="band-t"><b>Фукуок</b><small>Вход только для своих</small></span>
+    </div>
+    <label class="lbl" for="pw">Пароль поездки</label>
+    <input id="pw" name="password" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="например, abcd-efgh-ijkl-mnop" required>
+    <label class="chk"><input type="checkbox" id="pwShow"> Показать пароль</label>
+    <button class="btn" id="pwGo">Войти</button>
+    <p class="msg" id="lockMsg" role="alert"></p>
+    <p class="mut sm">Пароль вводится один раз на каждом телефоне — дальше приложение открывается само, даже без интернета.</p>
+  </form>
+</div>
+
+<!-- ============ ПРИЛОЖЕНИЕ ============ -->
+<div id="app" hidden>
+<header id="top">
+  <b class="brand">Фукуок</b>
+  <span id="net" class="pill"></span>
+  <button class="who" id="whoTop" aria-label="Профиль и оформление"><svg><use href="#i-user"/></svg><span></span></button>
 </header>
 
-<main>
-<!-- ============ ПОЕЗДКА ============ -->
+<nav id="nav" aria-label="Разделы">
+  <div class="nav-brand"><b>Фукуок</b><small id="navNet"></small></div>
+  <button data-t="home" class="on"><svg><use href="#i-trip"/></svg><span>Поездка</span></button>
+  <button data-t="docs"><svg><use href="#i-docs"/></svg><span>Документы</span></button>
+  <button data-t="scan" class="nav-scan"><i><svg><use href="#i-scan"/></svg></i><span>Сканер</span></button>
+  <button data-t="money"><svg><use href="#i-wallet"/></svg><span>Деньги</span><em id="cartBadge" hidden></em></button>
+  <button data-t="guide"><svg><use href="#i-guide"/></svg><span>Гид</span></button>
+  <button class="who nav-who" id="whoNav" aria-label="Профиль и оформление"><svg><use href="#i-user"/></svg><span></span></button>
+</nav>
+
+<main id="main">
+<!-- ====== ПОЕЗДКА ====== -->
 <section id="t-home" class="tab on">
-  <div class="card hero" id="nextCard"></div>
-  <div id="flights"></div>
-  <div class="card" id="wx"></div>
-  <div class="grid2">
-    <div class="card clock"><small>Казахстан</small><b id="clkKZ">--:--</b><small id="dateKZ"></small></div>
-    <div class="card clock"><small>Фукуок</small><b id="clkVN">--:--</b><small id="dateVN"></small></div>
-  </div>
-  <h2>План по времени</h2>
-  <div class="card" id="timeline"></div>
-  <div class="row">
-    <button class="btn" id="icsBtn">В календарь телефона</button>
-    <button class="btn ghost" id="notifBtn">Уведомления</button>
-  </div>
-  <p class="mut sm">Календарь телефона напомнит за час и за 15 минут даже без интернета. Уведомления приложения приходят, только пока оно открыто.</p>
-  <details class="card"><summary>Добавить своё событие</summary>
-    <div class="form">
-      <input id="evTitle" placeholder="Например: вылет Актау → Астана">
-      <input id="evTime" type="datetime-local">
-      <select id="evTz"><option value="+05:00">время Казахстана</option><option value="+07:00">время Фукуока</option></select>
-      <button class="btn" id="evAdd">Добавить</button>
+  <div class="band next" id="nextBand" aria-live="polite"></div>
+  <div class="soon" id="soon"></div>
+  <div class="cols">
+    <div class="col">
+      <div id="myPass"></div>
+      <h2>Рейсы</h2>
+      <div id="flights"></div>
+      <h2>Отель</h2>
+      <div class="plate" id="hotel"></div>
     </div>
-  </details>
-  <h2>Отель и трансфер</h2>
-  <div class="card">
-    <p>Север острова, район Grand World. Заезд 27 ноября после 15:00, выезд 3 декабря до 12:00. Завтраки включены. Трансфер из аэропорта и обратно — групповой. Название отеля смотрите в ваучере.</p>
-    <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=10.3323,103.8573">Открыть на карте</a>
-  </div>
-</section>
-
-<!-- ============ КУРС ============ -->
-<section id="t-conv" class="tab">
-  <div class="card conv">
-    <label class="cur"><span><b>₫</b>донги</span><input id="cVND" inputmode="decimal" autocomplete="off" placeholder="0"></label>
-    <label class="cur"><span><b>₸</b>тенге</span><input id="cKZT" inputmode="decimal" autocomplete="off" placeholder="0"></label>
-    <label class="cur"><span><b>$</b>доллары</span><input id="cUSD" inputmode="decimal" autocomplete="off" placeholder="0"></label>
-    <div class="chips" id="chips"></div>
-    <div class="row keys">
-      <button class="btn ghost" id="cClear">Стереть</button>
-      <button class="btn ghost" id="c000">000</button>
-      <button class="btn" id="cToCart">В корзину</button>
-    </div>
-  </div>
-  <div class="card">
-    <div class="row sp"><div><b id="rateLine">Курс</b><br><small class="mut" id="rateAge"></small></div>
-    <button class="btn ghost sm" id="rateUpd">Обновить</button></div>
-    <details><summary>Считать по курсу обменника</summary>
-      <div class="form">
-        <label>1 $ = <input id="myVND" inputmode="decimal" placeholder="донгов"> ₫</label>
-        <label>1 $ = <input id="myKZT" inputmode="decimal" placeholder="тенге"> ₸</label>
-        <label class="chk"><input type="checkbox" id="myOn"> считать по этому курсу</label>
+    <div class="col">
+      <div class="plate now" id="now"></div>
+      <h2>План по шагам</h2>
+      <ol class="plate course" id="timeline"></ol>
+      <div class="btnrow">
+        <button class="btn sec" id="icsBtn"><svg><use href="#i-cal"/></svg>В календарь телефона</button>
+        <button class="btn sec" id="notifBtn"><svg><use href="#i-bell"/></svg>Уведомления</button>
       </div>
-    </details>
+      <p class="mut sm">Календарь напомнит за час и за 15 минут даже без интернета. Уведомления из приложения приходят, только пока оно открыто.</p>
+      <details class="plate"><summary>Добавить своё событие</summary>
+        <div class="form">
+          <input id="evTitle" placeholder="Например: вылет Актау — Астана">
+          <input id="evTime" type="datetime-local">
+          <select id="evTz"><option value="+05:00">время Казахстана</option><option value="+07:00">время Фукуока</option></select>
+          <button class="btn" id="evAdd">Добавить в план</button>
+        </div>
+      </details>
+    </div>
   </div>
-  <h2>Купюры донгов</h2>
-  <div class="card"><table id="cheat"></table></div>
 </section>
 
-<!-- ============ СКАНЕР ============ -->
+<!-- ====== ДОКУМЕНТЫ ====== -->
+<section id="t-docs" class="tab">
+  <div class="seg people" id="docWho" role="tablist" aria-label="Чьи документы"></div>
+  <div class="cols">
+    <div class="col">
+      <div class="plate list" id="docList"></div>
+    </div>
+    <div class="col">
+      <div class="plate" id="paxCard"></div>
+    </div>
+  </div>
+  <h2>Общие</h2>
+  <div class="plate list" id="docCommon"></div>
+  <h2>Добавлены на этом телефоне</h2>
+  <div class="plate list" id="docLocal"></div>
+  <label class="btn sec filebtn"><svg><use href="#i-plus"/></svg>Добавить файл<input type="file" id="docFile" multiple accept="application/pdf,image/*" hidden></label>
+</section>
+
+<!-- ====== СКАНЕР И КАЛЬКУЛЯТОР ====== -->
 <section id="t-scan" class="tab">
-  <div class="cam" id="cam">
-    <video id="vid" playsinline muted autoplay></video>
-    <div class="frame" id="roi"><i></i></div>
-    <div class="camtop">
-      <div class="seg" id="scCur" role="group" aria-label="Валюта ценника">
-        <button data-c="VND">₫</button><button data-c="USD">$</button><button data-c="KZT">₸</button>
+  <div class="tool" id="tool" data-mode="cam">
+    <div class="cam" id="cam">
+      <video id="vid" playsinline muted autoplay></video>
+      <div class="frame" id="roi"><i></i></div>
+      <div class="camtop">
+        <div class="seg dark cur3" id="scCur" role="group" aria-label="Валюта ценника">
+          <button data-c="VND">₫</button><button data-c="USD">$</button><button data-c="KZT">₸</button>
+        </div>
+        <div class="tools">
+          <button id="zoomBtn" aria-label="Приблизить">1×</button>
+          <button id="torch" aria-label="Фонарик" hidden><svg><use href="#i-bolt"/></svg></button>
+          <button id="toCalc" aria-label="Калькулятор"><svg><use href="#i-calc"/></svg></button>
+          <button id="scSet" aria-label="Настройки сканера"><svg><use href="#i-sliders"/></svg></button>
+        </div>
       </div>
-      <div class="tools">
-        <button id="zoomBtn" aria-label="Приблизить">1×</button>
-        <button id="torch" hidden>Свет</button>
-        <button id="scKey" aria-label="Ввести цену вручную">123</button>
-        <button id="scSet" aria-label="Настройки сканера"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M16 4.500v5M8 14.500v5"/></svg></button>
+      <div class="dock">
+        <div class="read wait" id="scRead"><div class="big" id="scBig"></div><div class="sub" id="scSub"></div></div>
+        <div class="acts" id="scActs" hidden><button class="btn ghostdark" id="buyNo">Дальше</button><button class="btn signbtn" id="buyYes">В корзину</button></div>
+      </div>
+      <div class="camstart" id="camStart">
+        <span class="tile big"><svg><use href="#i-cam"/></svg></span>
+        <button class="btn signbtn" id="camBtn">Включить камеру</button>
+        <p id="camMsg" class="sm"></p>
+        <button class="btn ghostdark" id="camCalc"><svg><use href="#i-calc"/></svg>Калькулятор</button>
       </div>
     </div>
-    <div class="dock">
-      <div class="read" id="scRead"><div class="big" id="scBig">Наведите на цену</div><div class="sub" id="scSub">цифры должны быть внутри рамки</div></div>
-      <div class="acts" id="scActs" hidden><button class="btn dk" id="buyNo">Дальше</button><button class="btn" id="buyYes">В корзину</button></div>
-      <button class="cartbar" id="scCartBar"></button>
+
+    <div class="calc" id="calc">
+      <div class="calc-head">
+        <b>Калькулятор</b>
+        <button class="iconbtn" id="toCam" aria-label="Камера"><svg><use href="#i-cam"/></svg></button>
+      </div>
+      <div class="cur-rows" id="curRows">
+        <button class="currow" data-c="VND"><span class="cc">₫</span><span class="cn">донги</span><b></b></button>
+        <button class="currow" data-c="KZT"><span class="cc">₸</span><span class="cn">тенге</span><b></b></button>
+        <button class="currow" data-c="USD"><span class="cc">$</span><span class="cn">доллары</span><b></b></button>
+      </div>
+      <p class="rate" id="calcRate"></p>
+      <div class="chips" id="calcChips"></div>
+      <div class="keys" id="keys">
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="bs" class="k-fn" aria-label="Стереть цифру"><svg><use href="#i-back"/></svg></button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="c" class="k-fn">C</button>
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="add" class="k-add">В корзину</button>
+        <button data-k="000">000</button><button data-k="0">0</button><button data-k="dec" id="kDec">00</button>
+      </div>
     </div>
-    <div class="camstart" id="camStart"><button class="btn" id="camBtn">Включить камеру</button><p id="camMsg" class="sm"></p><button class="btn dk sm" id="camKey">Ввести цену вручную</button></div>
+
+    <button class="cartbar" id="cartBar"></button>
+  </div>
+  <div class="tool-side">
+    <h2>Корзина</h2>
+    <div class="plate cartbox"></div>
   </div>
 </section>
 
-<!-- ============ ДЕНЬГИ ============ -->
+<!-- ====== ДЕНЬГИ ====== -->
 <section id="t-money" class="tab">
-  <div class="card hero" id="moneyTotal"></div>
-  <h2>Корзина</h2>
-  <div class="card cartbox"></div>
-  <details class="card"><summary>Добавить покупку вручную</summary>
-    <div class="form">
-      <input id="mName" placeholder="Что это (необязательно)">
-      <div class="row"><input id="mPrice" inputmode="decimal" placeholder="Цена">
-      <select id="mCur"><option>VND</option><option>USD</option><option>KZT</option></select></div>
-      <button class="btn" id="mAdd">В корзину</button>
+  <div class="cols">
+    <div class="col">
+      <div class="plate total" id="moneyTotal"></div>
+      <h2>Корзина</h2>
+      <div class="plate cartbox"></div>
+      <details class="plate"><summary>Добавить покупку вручную</summary>
+        <div class="form">
+          <input id="mName" placeholder="Что это (можно не писать)">
+          <div class="frow"><input id="mPrice" inputmode="decimal" placeholder="Цена"><select id="mCur"><option value="VND">₫ донги</option><option value="USD">$ доллары</option><option value="KZT">₸ тенге</option></select></div>
+          <button class="btn" id="mAdd">В корзину</button>
+        </div>
+      </details>
     </div>
-  </details>
-  <h2>Сколько у нас денег</h2>
-  <div id="accounts"></div>
-  <button class="btn ghost" id="accAdd">Добавить счёт или кошелёк</button>
-  <h2>Что уже купили</h2>
-  <div class="card" id="history"></div>
+    <div class="col">
+      <h2>Кошельки</h2>
+      <div id="accounts"></div>
+      <button class="btn sec" id="accAdd"><svg><use href="#i-plus"/></svg>Добавить кошелёк или карту</button>
+      <h2>Что уже купили</h2>
+      <div class="plate" id="history"></div>
+      <p class="mut sm syncline" id="syncLine"></p>
+    </div>
+  </div>
 </section>
 
-<!-- ============ ГИД ============ -->
+<!-- ====== ГИД ====== -->
 <section id="t-guide" class="tab">
-  <div class="seg wide" id="gSeg">
-    <button data-g="places">Места</button><button data-g="rules">Правила</button><button data-g="bank">Банк</button><button data-g="docs">Документы</button>
+  <div class="seg wide" id="gSeg" role="tablist">
+    <button data-g="places">Места</button><button data-g="rules">Советы</button><button data-g="cash">Деньги</button><button data-g="contacts">Контакты</button>
   </div>
   <div class="gp" data-g="places">
-    <div id="map"></div>
-    <p class="mut sm">Карта грузится из интернета; что уже смотрели, откроется и без сети. Точки примерные, кнопка «Маршрут» ведёт в Google Maps.</p>
-    <div class="chips" id="placeCats"></div>
-    <div id="places"></div>
-    <h2>Готовые маршруты</h2>
-    <div id="routes"></div>
-  </div>
-  <div class="gp" data-g="rules" hidden><div id="rules"></div></div>
-  <div class="gp" data-g="bank" hidden>
-    <h2>Общий бюджет</h2>
-    <div class="card" id="syncCard"></div>
-    <h2>Картой или наличными</h2>
-    <div class="card" id="bank"></div>
-  </div>
-  <div class="gp" data-g="docs" hidden>
-    <div class="card">
-      <p class="mut sm">Посадочные, ваучер, страховка. Файлы остаются только в этом телефоне и открываются без интернета.</p>
-      <div id="docs"></div>
-      <label class="btn ghost filebtn">Добавить файл<input type="file" id="docFile" multiple accept="application/pdf,image/*" hidden></label>
+    <div class="places-grid">
+      <div class="mapwrap"><div id="map"></div><p class="mut sm">Карта грузится из интернета; что уже смотрели, откроется и без сети. Точки примерные, «Маршрут» ведёт в Google Maps.</p></div>
+      <div>
+        <div class="chips" id="placeCats"></div>
+        <div class="plate list" id="places"></div>
+        <h2>Готовые маршруты</h2>
+        <div id="routes"></div>
+      </div>
     </div>
-    <h2>Телефоны</h2>
-    <div class="card" id="contacts"></div>
+  </div>
+  <div class="gp" data-g="rules" hidden><div class="rules" id="rules"></div></div>
+  <div class="gp" data-g="cash" hidden>
+    <div class="cols">
+      <div class="col">
+        <h2>Курс</h2>
+        <div class="plate" id="rateCard"></div>
+        <h2>Купюры донгов</h2>
+        <div class="plate"><table class="notes" id="cheat"></table><p class="mut sm">20 000 и 500 000 обе синие — сверяйте нули.</p></div>
+      </div>
+      <div class="col">
+        <h2>Картой или наличными</h2>
+        <div class="plate" id="bank"></div>
+      </div>
+    </div>
+  </div>
+  <div class="gp" data-g="contacts" hidden>
+    <div class="plate list" id="contacts"></div>
     <p class="mut sm" id="ver"></p>
   </div>
 </section>
 </main>
+</div>
 
-<nav id="nav">
-  <button data-t="home" class="on"><svg viewBox="0 0 24 24"><path d="M21 3L3 10.500l7 2.500 2.500 7zM10 13l11-10"/></svg>Поездка</button>
-  <button data-t="conv"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Курс</button>
-  <button data-t="scan" class="navscan"><span><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg></span>Сканер</button>
-  <button data-t="money"><svg viewBox="0 0 24 24"><path d="M3 5h2l2.500 11h10L20 8H7M9 20a1 1 0 1 0 0-.01M17 20a1 1 0 1 0 0-.01"/></svg>Деньги<i id="cartBadge" hidden></i></button>
-  <button data-t="guide"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.200 7-11.500A7 7 0 0 0 5 9.500C5 14.800 12 21 12 21zM12 12a2.500 2.500 0 1 0 0-5 2.500 2.500 0 0 0 0 5z"/></svg>Гид</button>
-</nav>
+<!-- просмотр документа -->
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="vTitle">
+  <div class="vbar">
+    <button class="iconbtn" id="vClose" aria-label="Закрыть"><svg><use href="#i-x"/></svg></button>
+    <div class="vt"><b id="vTitle"></b><small id="vSub"></small></div>
+    <button class="iconbtn" id="vZoom" aria-label="Увеличить"><svg><use href="#i-zoom"/></svg></button>
+    <button class="iconbtn" id="vShare" aria-label="Поделиться или сохранить"><svg><use href="#i-share"/></svg></button>
+  </div>
+  <div class="vpages" id="vPages"></div>
+</div>
 
-<div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheetIn"></div></div>
-<div class="toast" id="toast" hidden></div>
+<div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheetIn" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden role="status"></div>
 
 <script src="vendor/leaflet/leaflet.js" defer></script>
 <script src="vendor/tesseract/tesseract.min.js" defer></script>
